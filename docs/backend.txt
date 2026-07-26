@@ -1,0 +1,5 @@
+FastAPI 是用于创建 Web API 的 Python 框架。它可以定义路由并接收请求。
+
+Uvicorn 是运行 FastAPI 应用的 ASGI 服务器。开发时常使用 uvicorn main:app --reload 启动服务。
+
+Pydantic 用于校验接口接收到的数据结构，例如限制 question 必须是字符串。
