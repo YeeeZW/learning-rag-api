@@ -30,7 +30,7 @@ def cosine_similarity(vector_a, vector_b):
 def choose_source(question):
     doc_paths = list(Path("docs").glob("*.txt"))
 
-    if not doc_paths
+    if not doc_paths:
         return None, {}, "docs 文件夹中没有找到 txt 资料"
 
     documents = []
@@ -65,8 +65,14 @@ def choose_source(question):
         )
 
     source = max(scores, key=scores.get)
+    best_score=scores[source]
+
+    if best_score < 0.45:
+        return None, scores, None
 
     return source, scores, None
+
+    
 
 
 @app.post("/ask")
@@ -80,6 +86,14 @@ def ask_question(request: QuestionRequest):
             "source": None,
             "answer": "语义检索调用失败：" + embedding_error,
         }
+    if source is None:
+        return {
+    "success": True,
+    "model": None,
+    "source": None,
+    "scores": scores,
+    "answer": "未找到相关资料，请换个问法或补充资料。",
+}
 
     knowledge = (Path("docs") / source).read_text(encoding="utf-8")
 
