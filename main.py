@@ -72,7 +72,7 @@ def ask_question(request: QuestionRequest):
             "answer": "语义检索调用失败：" + embedding_error,
         }
 
-    knowledge = Path(source).read_text(encoding="utf-8")
+    knowledge = (Path("docs") / source).read_text(encoding="utf-8")
 
     messages = [
         {
