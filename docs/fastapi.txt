@@ -1,0 +1,5 @@
+FastAPI 资料：
+
+FastAPI 是一个用 Python 编写 Web 接口的框架。
+本项目使用 FastAPI 接收用户问题，并把回答以 JSON 格式返回。
+Uvicorn 是启动 FastAPI 服务的工具。
