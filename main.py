@@ -28,10 +28,22 @@ def cosine_similarity(vector_a, vector_b):
 
 
 def choose_source(question):
-    fastapi_text = Path("docs/fastapi.txt").read_text(encoding="utf-8")
-    knowledge_text = Path("docs/knowledge.txt").read_text(encoding="utf-8")
+    doc_paths = list(Path("docs").glob("*.txt"))
 
-    texts = [question, fastapi_text, knowledge_text]
+    if not doc_paths
+        return None, {}, "docs 文件夹中没有找到 txt 资料"
+
+    documents = []
+
+    for path in doc_paths:
+        documents.append(
+            {
+                "name": path.name,
+                "content": path.read_text(encoding="utf-8"),
+            }
+        )
+
+    texts = [question] + [doc["content"] for doc in documents]
 
     response = dashscope.TextEmbedding.call(
         model="text-embedding-v4",
@@ -40,24 +52,21 @@ def choose_source(question):
     )
 
     if response.status_code != HTTPStatus.OK:
-        return None, None, response.message
+        return None, {}, response.message
 
     question_vector = response.output["embeddings"][0]["embedding"]
-    fastapi_vector = response.output["embeddings"][1]["embedding"]
-    knowledge_vector = response.output["embeddings"][2]["embedding"]
+    scores = {}
 
-    fastapi_score = cosine_similarity(question_vector, fastapi_vector)
-    knowledge_score = cosine_similarity(question_vector, knowledge_vector)
+    for index, doc in enumerate(documents, start=1):
+        doc_vector = response.output["embeddings"][index]["embedding"]
+        scores[doc["name"]] = round(
+            cosine_similarity(question_vector, doc_vector),
+            4,
+        )
 
-    scores = {
-        "fastapi.txt": round(fastapi_score, 4),
-        "knowledge.txt": round(knowledge_score, 4),
-    }
+    source = max(scores, key=scores.get)
 
-    if fastapi_score > knowledge_score:
-        return "fastapi.txt", scores, None
-
-    return "knowledge.txt", scores, None
+    return source, scores, None
 
 
 @app.post("/ask")
